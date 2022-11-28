@@ -1,16 +1,20 @@
 package javaapplication1;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.concurrent.ThreadLocalRandom;
 
 
 public class GaussMethod {
     public static final double EPS = 1E-5;
     private Double[][] A; // n+1 для свободного коэффициента
+    private Double[][] B;
     int m, n;
-    private Double[] answer;
-    StringBuilder result;
-    Boolean[] mark;
+    private final Double[] answer;
+    private final StringBuilder result;
+    private final Boolean[] mark;
 
     GaussMethod() {
         m = 0; n = 0;
@@ -34,12 +38,62 @@ public class GaussMethod {
         System.out.println("Enter matrix:");
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n+1; j++) {
-                A[i][j] = sc.nextDouble();
+                double rand = ThreadLocalRandom.current().nextInt(1,50);
+                A[i][j] = rand;
             }
         }
     }
 
+    public void set(int row, int col, double val) {
+        if(row > m) return;
+        else if(col > n+1) return;
+        else {
+            A[row][col] = val;
+        }
+    }
+
+
+    public void saveToFile()  {
+        try(FileWriter writer = new FileWriter("result.txt", false))
+        {
+            StringBuilder inM = new StringBuilder();
+            writer.write("\nИсходная матрица: \n");
+            for (int i = 0; i < m; i++) {
+                inM.append("[ ");
+                for (int j = 0; j < n + 1; j++) {
+                    inM.append(B[i][j]);
+                    inM.append(" ");
+                }
+                inM.append("]\n");
+                System.out.println("ALL OK!");
+            }
+            writer.write(inM.toString());
+            writer.write("\nПреобразованная матрица: \n");
+            StringBuilder outM = new StringBuilder();
+            for (int i = 0; i < m; i++) {
+                outM.append("[ ");
+                for (int j = 0; j < n + 1; j++) {
+                    outM.append(A[i][j]);
+                    outM.append(" ");
+                }
+                outM.append("]\n");
+
+            }
+            writer.write(outM.toString());
+
+            writer.write("\nРешение: \n");
+            writer.write(result.toString());
+            writer.flush();
+        }
+        catch(IOException ex){
+
+            System.out.println(ex.getMessage());
+        }
+    }
     public void rightGaussianStroke() {
+        B = A;
+
+
         int min_size = Math.min(m, n); // минимальное из чисел
 
         for (int k = 0; k < min_size; k++) {
@@ -114,22 +168,22 @@ public class GaussMethod {
                 mark[i] = Boolean.TRUE;
             }
             if (cnt_of_zeroes == n && Math.abs(A[i][n]) > EPS) {
-                System.out.println("The system of equations is inconsistent");  // вернуть сообщение лучше!
+                System.out.println("The system of equations is inconsistent"); // система не имеет решений
                 return;
             }
         }
     }
 
     public void backGaussianStroke() {
-
-        for (int i = 0; i < m; i++) { // все ненулевые строки "переносим вперёд":
+        for (int i = 0; i < m; i++) {                       // все ненулевые строки "переносим вперёд":
             for (int j = i+1; j < m; j++) {
                 if (mark[i] == Boolean.TRUE && mark[j] == Boolean.FALSE) {
                     Swap_Lines(i, j, n, A, mark);
                 }
             }
         }
-        int cnt_of_marks = 0;                               // если количество ненулевых строк совпадает с количеством уравнений, то система имеет единственное решение:
+        int cnt_of_marks = 0;                               // если количество ненулевых строк совпадает с количеством
+                                                            // уравнений, то система имеет единственное решение:
         for (int i = 0; i < m; i++) {
             if (mark[i] == Boolean.TRUE) cnt_of_marks++;
         }
@@ -147,15 +201,8 @@ public class GaussMethod {
             }
             result.append(answer[n-1]);
             result.append(" ]");
-
-            /*System.out.println("Answer:"); // вывод полученного результата
-            for (int k = 0; k < n-1; k++) {
-                System.out.print(answer[k] + " ");
-            }
-            System.out.println(answer[n-1]);*/
-
         }
-        else {                                              // иначе отмечаем свободные переменные:
+        else {                                              // иначе отмечаем свободные переменные
             int cnt_of_free_variables = n - (bottom_border + 1);
 
             Boolean[] marked_variables = new Boolean[n];
@@ -183,11 +230,13 @@ public class GaussMethod {
                 cnt_of_free_variables--;
             }
 
-            result.append("Initialization of free variables: \n");
+            result.append("Initialization of free variables: \n");  // вывод возможного варианта ответа
+                                                                    // полагаем, что значение переменной равно 1,
+                                                                    // чтобы найти значения зависимых переменных
             //System.out.println("Initialization of free variables:");
             for (int i = 0; i < n; i++) {
                 if (marked_variables[i] == Boolean.TRUE) {
-                    answer[i] = 1.0; // RAND???
+                    answer[i] = 1.0;
                     result.append("Let: ");
                     result.append(i);
                     result.append("-th variable assigned: ");
@@ -272,17 +321,17 @@ public class GaussMethod {
     }
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder();
+        StringBuilder res = new StringBuilder();
 
         for (int i = 0; i < m; i++) {
-            result.append("[ ");
+            res.append("[ ");
             for (int j = 0; j < n + 1; j++) {
-                result.append(A[i][j]);
-                result.append(" ");
+                res.append(A[i][j]);
+                res.append(" ");
             }
-            result.append("]\n");
+            res.append("]\n");
         }
-        return result.toString();
+        return res.toString();
     }
 
     public String answer() {
