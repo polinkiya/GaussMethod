@@ -1,8 +1,6 @@
 package javaapplication1;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.ThreadLocalRandom;
@@ -55,6 +53,13 @@ public class GaussMethod {
         }
     }
 
+    public double get(int row, int col) {
+        if(row > m) return 0;
+        else if(col > n+1) return 0;
+        else {
+            return A[row][col];
+        }
+    }
 
     public void saveToFile(File name)  {
         try(FileWriter writer = new FileWriter(name, false))
@@ -175,6 +180,8 @@ public class GaussMethod {
     }
 
     public void backGaussianStroke() {
+        result.delete(0, result.length());                  // очищаем строку результат
+
         for (int i = 0; i < m; i++) {                       // все ненулевые строки "переносим вперёд":
             for (int j = i+1; j < m; j++) {
                 if (mark[i] == Boolean.TRUE && mark[j] == Boolean.FALSE) {
