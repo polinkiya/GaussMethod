@@ -1,5 +1,6 @@
 package javaapplication1;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
@@ -26,6 +27,7 @@ public class GaussMethod {
     }
     GaussMethod(int m, int n) {
         A = new Double[m][n+1]; // n+1 для свободного коэффициента
+        B = new Double[m][n+1];
         answer = new Double[n];
         mark = new Boolean[m];
         result = new StringBuilder();
@@ -49,12 +51,13 @@ public class GaussMethod {
         else if(col > n+1) return;
         else {
             A[row][col] = val;
+            B[row][col] = val;
         }
     }
 
 
-    public void saveToFile()  {
-        try(FileWriter writer = new FileWriter("result.txt", false))
+    public void saveToFile(File name)  {
+        try(FileWriter writer = new FileWriter(name, false))
         {
             StringBuilder inM = new StringBuilder();
             writer.write("\nИсходная матрица: \n");
@@ -91,9 +94,6 @@ public class GaussMethod {
         }
     }
     public void rightGaussianStroke() {
-        B = A;
-
-
         int min_size = Math.min(m, n); // минимальное из чисел
 
         for (int k = 0; k < min_size; k++) {
@@ -230,28 +230,28 @@ public class GaussMethod {
                 cnt_of_free_variables--;
             }
 
-            result.append("Initialization of free variables: \n");  // вывод возможного варианта ответа
+            result.append("Инициализация свободных переменных: \n");  // вывод возможного варианта ответа
                                                                     // полагаем, что значение переменной равно 1,
                                                                     // чтобы найти значения зависимых переменных
             //System.out.println("Initialization of free variables:");
             for (int i = 0; i < n; i++) {
                 if (marked_variables[i] == Boolean.TRUE) {
                     answer[i] = 1.0;
-                    result.append("Let: ");
+                    result.append("Положим, что: ");
                     result.append(i);
-                    result.append("-th variable assigned: ");
+                    result.append("-я переменная зависимая: ");
                     result.append(answer[i]);
                     //System.out.println("Let: " + i + "-th variable assigned:" + answer[i]);
                 }
             }
 
-            result.append("\nAnswer:\n");
+            result.append("\nРезультат:\n");
             //System.out.println("Answer:");      // выводим в консоль результирующую матрицу ~A
             for (int i = 0; i < n; i++) {
                 if (marked_variables[i] == Boolean.TRUE) {
                     result.append(i);
-                    result.append("-th variable is free\n");
-                    System.out.println(i + "-th variable is free");
+                    result.append("-я переменная зависимая\n");
+                    //System.out.println(i + "-ья переменная зависимая");
                 }
             }
 
@@ -308,7 +308,7 @@ public class GaussMethod {
             }
 */
 
-            result.append("\nOne of the solutions, for example: ");
+            result.append("\nОдно из возможных решений, например: ");
             //System.out.println("One of the solutions:");
             for (int k = 0; k < n - 1; k++) {
                 result.append(answer[k]);

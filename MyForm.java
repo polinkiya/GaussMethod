@@ -1,6 +1,8 @@
 package javaapplication1;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -10,7 +12,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class MyForm extends JFrame{
     GaussMethod sample;
-    static JButton button, button2, button3;
+    static JButton button, button2, button3, button4;
     static JLabel lb1, lb2, imageLabel, lb3;
     static JTextField mSize, nSize;
     static JTable table;
@@ -22,7 +24,6 @@ public class MyForm extends JFrame{
 
     public MyForm() {
         super("Решение СЛАУ методом Гаусса");
-        setResizable(false);
 
         button = new JButton("Заполнить матрицу");
         button2 = new JButton("Решить систему");
@@ -32,6 +33,8 @@ public class MyForm extends JFrame{
         nSize= new JTextField("0");
         lb2 = new JLabel("Введите количество переменных:");
         lb3 = new JLabel("Решение СЛАУ:");
+        button4 = new JButton("Показать график");
+
 
         solution = new JTextPane();
         imageLabel = new JLabel(new ImageIcon("/Users/polinamorozova/IdeaProjects/Gauss_method/calc.png"));
@@ -42,7 +45,9 @@ public class MyForm extends JFrame{
         button.setBounds( 350, 20,150,20);
         button2.setBounds( 350, 50,150,20);
         button3.setBounds( 350, 80,150,20);
-        // button.setBackground(Color.PINK);
+        button4.setBounds(350,110, 150, 20);
+
+
         mSize.setBounds(10,20,200,30);
         nSize.setBounds(10,70,200,30);
 
@@ -56,6 +61,7 @@ public class MyForm extends JFrame{
         add(button);
         add(button2);
         add(button3);
+        add(button4);
         add(mSize);
         add(lb1);
         add(nSize);
@@ -70,6 +76,7 @@ public class MyForm extends JFrame{
         button.addActionListener(check);
         button2.addActionListener(check);
         button3.addActionListener(check);
+        button4.addActionListener(check);
 
     }
 
@@ -88,7 +95,7 @@ public class MyForm extends JFrame{
                 table.setBorder(new LineBorder(new Color(41, 101, 222)));
                 table.setSelectionBackground(Color.LIGHT_GRAY);
                 table.setVisible(true);
-                table.setBounds(10, 130, m*125, n*20);
+                table.setBounds(10, 140, m*125, n*20);
                 add(table);
 
             }
@@ -97,11 +104,18 @@ public class MyForm extends JFrame{
                 String str;
                 for(int i = 0; i < Integer.parseInt(mSize.getText()); i++) {
                     for(int j = 0; j < Integer.parseInt(nSize.getText())+1; j++) {
-                        str = table.getModel().getValueAt(i,j).toString();
-                        //System.out.print("STR:" + str + "  ");
-                        val = Double.valueOf(str);
-                        //System.out.println("DOUBLE:" + val + "  ");
-                        sample.set(i,j,val);
+                        try {
+                            str = table.getModel().getValueAt(i, j).toString();
+                            //System.out.print("STR:" + str + "  ");
+                            val = Double.valueOf(str);
+                            //System.out.println("DOUBLE:" + val + "  ");
+                            sample.set(i, j, val);
+                        }
+                        catch (NumberFormatException ex) {
+                            System.out.println(ex.getMessage());
+                            JOptionPane.showMessageDialog(null, "Таблица заполнена некорректно");
+                            return;
+                        }
                         //System.out.print(table.getModel().getValueAt(i,j) + " ");
                     }
                     //System.out.println();
@@ -112,12 +126,29 @@ public class MyForm extends JFrame{
                 solution.setText(sample.answer());
                 System.out.println(sample.answer());
             }
+
+
+
             if(event.getSource() == button3) {
-                sample.saveToFile();
+
+                JFileChooser fc = new JFileChooser();
+                if (fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+                    try (FileWriter fw = new FileWriter(fc.getSelectedFile())) {
+                        fw.write("");
+                        sample.saveToFile(fc.getSelectedFile());
+                    }
+                    catch (IOException e ) {
+                        System.out.println("Всё погибло!");
+                    }
+                }
+                // sample.saveToFile();
+            }
+            if(event.getSource() == button4) {
+                Icon gr = new ImageIcon("/Users/polinamorozova/IdeaProjects/Gauss_method/graph.png");
+                JOptionPane.showMessageDialog(null, "","График зависимости времени решения системы от количества уравнений", JOptionPane.WARNING_MESSAGE, gr);
 
             }
 
-            //JOptionPane.showMessageDialog(null, "ok");
         }
     }
 

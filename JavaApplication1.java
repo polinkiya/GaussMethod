@@ -1,12 +1,13 @@
 package javaapplication1;
-
-
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+
+
 
 public class JavaApplication1 {
+
     public static void main(String[] args) {
         MyForm pr = new MyForm();
 
