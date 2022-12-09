@@ -2,6 +2,7 @@ package javaapplication1;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.security.spec.RSAOtherPrimeInfo;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.ThreadLocalRandom;
@@ -20,6 +21,8 @@ public class MyForm extends JFrame{
     static JTable table;
     static DefaultTableModel tableModel;
     static JTextPane solution;
+    static JProgressBar bar = new JProgressBar();
+
 
     Checked check = new Checked();
 
@@ -32,7 +35,7 @@ public class MyForm extends JFrame{
         button3 = new JButton("Сохранить в файл");
         mSize= new JTextField("0");
         lb1 = new JLabel("Введите количество уравнений:");
-        nSize= new JTextField("0");
+        nSize = new JTextField("0");
         lb2 = new JLabel("Введите количество переменных:");
         lb3 = new JLabel("Решение СЛАУ:");
         button4 = new JButton("Показать график");
@@ -43,15 +46,16 @@ public class MyForm extends JFrame{
         solution = new JTextPane();
         imageLabel = new JLabel(new ImageIcon("/Users/polinamorozova/IdeaProjects/Gauss_method/calc.png"));
         imageLabel.setVisible(true);
-        imageLabel.setBounds(430,180,150,150);
+        imageLabel.setBounds(560,120,150,150);
 
-        setSize(600,570);
-        button.setBounds( 400, 20,150,20);
-        button2.setBounds( 400, 50,150,20);
-        button4.setBounds(400,80, 150, 20);
-        button5.setBounds(400,110, 150, 20);
-        button6.setBounds(400,140, 150, 20);
-        button3.setBounds( 400, 170,150,20);
+        setSize(800,760);
+        button.setBounds( 400, 20,160,30);
+        button2.setBounds( 400, 50,160,30);
+        button4.setBounds(400,80, 160, 30);
+
+        button5.setBounds(560,20, 160, 30);
+        button6.setBounds(560,50, 160, 30);
+        button3.setBounds( 560, 80,160,30);
 
         mSize.setBounds(10,20,200,30);
         nSize.setBounds(10,70,200,30);
@@ -60,8 +64,12 @@ public class MyForm extends JFrame{
         lb2.setBounds(nSize.getX(), nSize.getY() - 20, 300, 20 );
         lb3.setBounds(10, 310, 300, 20 );
 
-        solution.setBounds(10, 330, 580, 200);
-        //table = new JTable(1,0);
+        solution.setBounds(10, 330, 780, 390);
+
+        bar.setValue(0);
+        bar.setBounds(10, 100, 780, 50);
+        bar.setStringPainted(true);
+        add(bar);
 
 
         add(button);
@@ -81,6 +89,7 @@ public class MyForm extends JFrame{
 
         setLayout(null);
         setVisible(true);
+        setResizable(false);
 
         button.addActionListener(check);
         button2.addActionListener(check);
@@ -92,8 +101,74 @@ public class MyForm extends JFrame{
     }
 
 
-    private class Checked implements ActionListener{
+    private static SwingWorker<Void, Void> startWorker(JProgressBar progress, JButton button) {
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() {
+                for (int i = 0; i < 100 && !isCancelled(); i++) {
+                    doWork();
+                    setProgress(i);
+                }
+                return null;
+            }
 
+            @Override
+            protected void done() {
+                button.setEnabled(true);
+                button.setText("Заполнить матрицу");
+               bar.setValue(100);
+            }
+        };
+        worker.addPropertyChangeListener(e -> {
+            if ("progress".equals(e.getPropertyName())) {
+                progress.setValue((Integer)e.getNewValue());
+            }
+        });
+        return worker;
+    }
+
+    private static void doWork() {
+        try {
+            Thread.sleep((long) Integer.parseInt(mSize.getText()) * Integer.parseInt(nSize.getText()) /7000);
+
+        } catch (InterruptedException ignored) {}
+    }
+
+    public class MyThread extends Thread {
+        public void run() {
+            System.out.println("поток1 запущен");
+            startWorker(bar, button5).execute();
+            button5.setEnabled(false);
+        }
+    }
+
+    public class MyThread2 extends Thread {
+        public void run() {
+            System.out.println("поток2 запущен");
+            for(int i = 0; i < Integer.parseInt(mSize.getText()); i++) {
+                for(int j = 0; j < Integer.parseInt(nSize.getText())+1; j++) {
+                    try {
+                        double rand = (int) (Math.random() * 50);
+                        table.getModel().setValueAt(rand, i, j);
+                        // val = Double.valueOf(str);
+                        sample.set(i, j, rand);
+                        //bar.setValue((i+1)*(j+1));
+
+                        revalidate();
+                    }
+                    catch (NumberFormatException ex) {
+                        System.out.println(ex.getMessage());
+                        JOptionPane.showMessageDialog(null, "Таблица заполнена некорректно");
+                        return;
+                    }
+                    //System.out.print(table.getModel().getValueAt(i,j) + " ");
+                }
+                //System.out.println();
+            }
+            System.out.println("поток2 завершен");
+        }
+    }
+    private class Checked implements ActionListener{
         @Override
         public void actionPerformed(ActionEvent event) {
             if(event.getSource() == button) { // событие произошло у кнопки
@@ -114,6 +189,9 @@ public class MyForm extends JFrame{
 
             }
             if(event.getSource() == button2) {
+                if(Integer.parseInt(mSize.getText()) > 30 || Integer.parseInt(nSize.getText()) > 30) {
+                    JOptionPane.showMessageDialog(null, "Для удобного просмотра после решения системы,\n сохраните результат в файл\n Или используйте консольную версию :)");
+                }
                 Double val = null;
                 String str;
                 for(int i = 0; i < Integer.parseInt(mSize.getText()); i++) {
@@ -173,23 +251,31 @@ public class MyForm extends JFrame{
             }
 
             if(event.getSource() == button5) {
-                for(int i = 0; i < Integer.parseInt(mSize.getText()); i++) {
-                    for(int j = 0; j < Integer.parseInt(nSize.getText())+1; j++) {
-                        try {
-                            double rand = (int) (Math.random() * 50);
-                            table.getModel().setValueAt(rand, i, j);
-                           // val = Double.valueOf(str);
-                            sample.set(i, j, rand);
-                        }
-                        catch (NumberFormatException ex) {
-                            System.out.println(ex.getMessage());
-                            JOptionPane.showMessageDialog(null, "Таблица заполнена некорректно");
-                            return;
-                        }
-                        //System.out.print(table.getModel().getValueAt(i,j) + " ");
-                    }
-                    //System.out.println();
-                }
+                MyThread myThread = new MyThread();
+                MyThread2 myThread2 = new MyThread2();
+                myThread.start();
+                myThread2.start();
+//
+//                for(int i = 0; i < Integer.parseInt(mSize.getText()); i++) {
+//                    for(int j = 0; j < Integer.parseInt(nSize.getText())+1; j++) {
+//                        try {
+//                            double rand = (int) (Math.random() * 50);
+//                            table.getModel().setValueAt(rand, i, j);
+//                           // val = Double.valueOf(str);
+//                            sample.set(i, j, rand);
+//                            //bar.setValue((i+1)*(j+1));
+//
+//                            revalidate();
+//                        }
+//                        catch (NumberFormatException ex) {
+//                            System.out.println(ex.getMessage());
+//                            JOptionPane.showMessageDialog(null, "Таблица заполнена некорректно");
+//                            return;
+//                        }
+//                        //System.out.print(table.getModel().getValueAt(i,j) + " ");
+//                    }
+//                    //System.out.println();
+//                }
             }
 
             if(event.getSource() == button6) {
